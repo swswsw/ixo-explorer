@@ -40,7 +40,7 @@ class Explorer extends React.Component<Props, State> {
         this.state = {
             data: [],
             paused: false,
-            chainUri: 'localhost:46657',
+            chainUri: 'localhost:44539',
             lastBlockHeight: '-1',
             syncBlock: -1,
         };
@@ -71,21 +71,29 @@ class Explorer extends React.Component<Props, State> {
 
     parseEvent(event: any): Block {
         let currentBlock = new Block();
+        console.log('1', event.data);
         const obj = JSON.parse(event.data);
         if (obj.result.data) {
-            var block = obj.result.data.data.block;
+            console.log('**************');
+            console.log(obj.result);
+            var block = obj.result.data.value.block;
             currentBlock.blockData = block;
-            currentBlock.blockHash = block.last_commit.blockID.hash;
+            // currentBlock.blockHash = 'test';
+            currentBlock.blockHash = block.header.last_commit_hash;
             currentBlock.height = block.header.height;
             currentBlock.timstamp = block.header.time;
             currentBlock.txCount = block.header.num_txs;
-            currentBlock.txData = block.data.txs.map((item: any) => {
-                var decoded = base64.decode(item);
-                if (decoded.length > 8) {
-                    decoded = decoded.substring(4, decoded.length - 4);
-                }
-                return decoded;
-            });
+            if (block.data.txs) {
+                currentBlock.txData = block.data.txs.map((item: any) => {
+                    var decoded = base64.decode(item);
+                    if (decoded.length > 8) {
+                        decoded = decoded.substring(4, decoded.length - 4);
+                    }
+                    return decoded;
+                });
+            } else {
+                return new Block();
+            }
         }
         return currentBlock;
     }
